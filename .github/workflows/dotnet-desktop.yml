@@ -58,18 +58,19 @@ jobs:
       Test_Project_Path: SimpleHMS.csproj           # Replace with the path to your test project, i.e. MyWpfApp.Tests\MyWpfApp.Tests.csproj.
       Wap_Project_Directory: HMS00.Package          # Replace with the Wap project directory relative to the solution, i.e. MyWpfApp.Package.
       Wap_Project_Path: HMS00.Package\HMS00.Package.wapproj  # Replace with the path to your Wap project, i.e. MyWpf.App.Package\MyWpfApp.Package.wapproj.
-      DB_CONNECTION_STRING: "Server=localhost;Database=SimpleHospitalDB;User Id=sa;Password=${{ secrets.DB_PASSWORD }};TrustServerCertificate=True;"
+      DB_PASSWORD: "YourStrongPassword123!"         # Use a strong password for SQL Server
+      DB_CONNECTION_STRING: "Server=localhost;Database=SimpleHospitalDB;User Id=sa;Password=$(DB_PASSWORD);TrustServerCertificate=True;"
 
     services:
       mssql:
         image: mcr.microsoft.com/mssql/server:2019-latest
         env:
-          SA_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          SA_PASSWORD: ${{ env.DB_PASSWORD }}
           ACCEPT_EULA: Y
         ports:
           - 1433:1433
         options: >-
-          --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P ${{ secrets.DB_PASSWORD }} -Q 'SELECT 1' || exit 1"
+          --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P ${{ env.DB_PASSWORD }} -Q 'SELECT 1' || exit 1"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -101,10 +102,10 @@ jobs:
         Start-Sleep -s 10
         
         # Run the SQL script to initialize the database
-        sqlcmd -S localhost -U sa -P ${{ secrets.DB_PASSWORD }} -i "${{ github.workspace }}/SimpleHospitalDB.sql" -b
+        sqlcmd -S localhost -U sa -P ${{ env.DB_PASSWORD }} -i "${{ github.workspace }}/SimpleHospitalDB.sql" -b
         
         # Verify database was created successfully
-        sqlcmd -S localhost -U sa -P ${{ secrets.DB_PASSWORD }} -Q "SELECT name FROM sys.databases WHERE name = 'SimpleHospitalDB'"
+        sqlcmd -S localhost -U sa -P ${{ env.DB_PASSWORD }} -Q "SELECT name FROM sys.databases WHERE name = 'SimpleHospitalDB'"
       continue-on-error: false
 
     # Execute all unit tests in the solution
